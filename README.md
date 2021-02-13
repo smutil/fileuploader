@@ -33,9 +33,9 @@ This service can be used to upload file.
  
 ### installation
  
- download from releases and copy into any server. 
+ step 1. download from <a href=https://github.com/smutil/fileuploader/releases>releases</a>. 
  
- start the service as shwon below
+ step 2. start the service as shwon below
  
  ```
  ./fileuploader -dest /tmp/configs

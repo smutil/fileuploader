@@ -24,7 +24,7 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-This service can be used to upload file. 
+This service is used to upload file in server. This service can be used for uploading config files needed for prometheus, consul etc.
 
 ## getting-started
 
@@ -46,7 +46,7 @@ This service can be used to upload file.
 ``` 
   ./fileuploader -h
   -dest string
-        (required) destination directory
+        (required) default destination directory
   -port string
         overwrite default port (default "3000")
  ```

@@ -52,7 +52,15 @@ This service can be used to upload file.
  ```
  
  ### example
+
+ 1. uploading file in default destination directory
  ```
  curl -F "data=@test.yml"  http://localhost:3000/upload
  
-  ```
+ ```
+
+ 2. uploading file in user defined destination directory
+ ```
+ curl -F "data=@test.yml" -F "destDir=/tmp/downloads"  http://localhost:3000/upload
+ 
+ ```

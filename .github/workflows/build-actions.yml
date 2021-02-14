@@ -26,3 +26,16 @@ jobs:
       # Run build of the application
       - name: build
         run: go build .
+    build-docker-image:
+      runs-on: ubuntu-latest
+      env:
+        application_name: fileuploader
+      steps:
+        - uses: actions/checkout@v2
+        - name: Set up QEMU
+          uses: docker/setup-qemu-action@v1
+        - name: Set up Docker Buildx
+          uses: docker/setup-buildx-action@v1
+        - name: build docker image
+          run: |
+              docker build --force-rm=true -t ${application_name}:latest .

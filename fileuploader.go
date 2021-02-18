@@ -8,22 +8,31 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"flag"
 	"log"
+	"strings"
 )
 
-var defaultDestDir string
+var workingDir string
 
 func main() {
 	port := flag.String("port", "3000", "overwrite default port")
-	dest := flag.String("dest", "", "(required) default destination directory")
-	
+	dest := flag.String("dest", "", "(required) destination directory, should not be root /")
+	viewmode := flag.Bool("viewmode", false, "/view will be enabled to view all the files in destination directory")
+
 	flag.Parse()
-	if *dest == "" {
-		log.Fatal("-dest is required for default destination directory, please refer -h")
+	if *dest == "" || *dest == "/" {
+		log.Fatal("-dest is required for default destination/working directory and should not be root /, please refer -h")
 	} 
-	defaultDestDir = *dest
+	workingDir = formatDirName(*dest)
+	log.Println("working directory is  "+workingDir)
+	fs := http.FileServer(http.Dir(workingDir))
 	http.Handle("/metrics", promhttp.Handler())
-	http.HandleFunc("/", ping)
+	if *viewmode {
+		log.Println("starting application is view mode")
+		http.Handle( "/view/", http.StripPrefix( "/view", fs ) )
+	}
+	
 	http.HandleFunc("/upload", uploadFile)
+	http.HandleFunc("/", ping)
 	log.Println("application starting on port  "+*port)
 	http.ListenAndServe(":"+*port, nil)
 	
@@ -35,12 +44,11 @@ func uploadFile(w http.ResponseWriter, r *http.Request) {
 	// Get handler for metadata file 
 	err := r.ParseForm()
 
-	destDir := r.FormValue("destDir")
-	if len(destDir) == 0 {
-		destDir = defaultDestDir
-	}  
-	log.Println("file will be uploaded to destination directory "+destDir)
-
+	destDir := r.FormValue("dest")
+	if len(destDir) != 0 {
+		workingDir += formatDirName(destDir)
+	}
+	log.Println("file will be uploaded to destination directory "+workingDir)
 
 	// Get handler for filename and size 
 	file, handler, err := r.FormFile("data")
@@ -51,11 +59,15 @@ func uploadFile(w http.ResponseWriter, r *http.Request) {
 	}
 
 	defer file.Close()
+	
 	log.Printf("Uploaded File: %+v\n", handler.Filename)
 
+	makeDirectoryIfNotExists(workingDir)
+
 	// Create file
-	dst, err := os.Create(destDir+"/"+handler.Filename)
+	dst, err := os.Create(workingDir+"/"+handler.Filename)
 	defer dst.Close()
+
 	if err != nil {
 		log.Printf("some error occured while creating the file")
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -68,11 +80,29 @@ func uploadFile(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-
-	fmt.Fprintf(w, "Successfully Uploaded File " + destDir +"/"+handler.Filename +"\n")
+	fmt.Fprintf(w, "Successfully Uploaded File " + workingDir +"/"+handler.Filename +"\n")
 }
+
 
 func ping(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, "/metrics")
 	fmt.Fprintln(w, "/upload")
+	fmt.Fprintln(w, "/view")
+}
+
+func formatDirName(s string) string {
+	if strings.HasSuffix(s, "/") { 
+		s = strings.TrimSuffix(s, "/")
+	}
+	if !(strings.HasPrefix(s, "/")){
+		s = "/" + s
+	}
+	return s
+}
+
+func makeDirectoryIfNotExists(path string) error {
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		return os.MkdirAll(path, os.ModePerm)
+	}
+	return nil
 }

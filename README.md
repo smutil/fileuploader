@@ -35,7 +35,7 @@ This service is used to upload file in server. This service can be used for uplo
  
  step 1. download from <a href=https://github.com/smutil/fileuploader/releases>releases</a>. 
  
- step 2. start the service as shwon below
+ step 2. start the service as shown below
  
  ```
  ./fileuploader -dest /tmp/configs
@@ -45,10 +45,12 @@ This service is used to upload file in server. This service can be used for uplo
 
 ``` 
   ./fileuploader -h
-  -dest string
-        (required) default destination directory
-  -port string
+  --dest string
+        (required) destination directory, should not be root /
+  --port string
         overwrite default port (default "3000")
+  --viewmode
+        /view will be enabled to view all the files in destination directory
  ```
  
  ### example
@@ -59,8 +61,8 @@ This service is used to upload file in server. This service can be used for uplo
  
  ```
 
- 2. uploading file in user defined destination directory
+ 2. uploading file in user defined destination directory. This path will be appended in default destination.
  ```
- curl -F "data=@test.yml" -F "destDir=/tmp/downloads"  http://localhost:3000/upload
+ curl -F "data=@test.yml" -F "dest=/tmp/downloads"  http://localhost:3000/upload
  
  ```

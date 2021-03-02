@@ -45,16 +45,18 @@ This service is used to upload file in server. This service can be used for uplo
 
 ``` 
   ./fileuploader -h
-    -dest string
+    --dest string
           (required) destination directory, should not be root /
-    -port string
+    --port string
           overwrite default port (default "3000")
-    -tls.crt string
+    --tls-crt string
           certificate path, only needed for ssl service
-    -tls.key string
+    --tls-key string
           key path, only needed for ssl service
-    -viewmode
+    --viewmode
           /view will be enabled to view all the files in destination directory
+    --log-file
+          writes all the log messages to a file
  ```
  
  ### example

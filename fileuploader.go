@@ -17,13 +17,24 @@ func main() {
 	port := flag.String("port", "3000", "overwrite default port")
 	dest := flag.String("dest", "", "(required) destination directory, should not be root /")
 	viewmode := flag.Bool("viewmode", false, "/view will be enabled to view all the files in destination directory")
-	tlsCert := flag.String("tls.crt", "", "certificate path, only needed for ssl service")
-	tlsKey := flag.String("tls.key", "", "key path, only needed for ssl service")
+	tlsCert := flag.String("tls-crt", "", "certificate path, only needed for ssl service")
+	tlsKey := flag.String("tls-key", "", "key path, only needed for ssl service")
+	logfile := flag.String("log-file", "", "key path, only needed for ssl service")
 
 	flag.Parse()
 	if *dest == "" || *dest == "/" {
 		log.Fatal("-dest is required for default destination/working directory and should not be root /, please refer -h")
 	} 
+
+	if *logfile != "" {
+		file, err := os.OpenFile(*logfile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
+		if err != nil {
+			log.Fatal(err)
+		}
+		log.SetOutput(file)
+	}
+	
+
 	workingDir = formatDirName(*dest)
 	log.Println("working directory is  "+workingDir)
 	fs := http.FileServer(http.Dir(workingDir))

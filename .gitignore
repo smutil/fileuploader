@@ -4,6 +4,7 @@
 *.dll
 *.so
 *.dylib
+fileuploader
 
 # Test binary, built with `go test -c`
 *.test

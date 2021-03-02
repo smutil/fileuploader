@@ -17,6 +17,8 @@ func main() {
 	port := flag.String("port", "3000", "overwrite default port")
 	dest := flag.String("dest", "", "(required) destination directory, should not be root /")
 	viewmode := flag.Bool("viewmode", false, "/view will be enabled to view all the files in destination directory")
+	tlsCert := flag.String("tls.crt", "", "certificate path, only needed for ssl service")
+	tlsKey := flag.String("tls.key", "", "key path, only needed for ssl service")
 
 	flag.Parse()
 	if *dest == "" || *dest == "/" {
@@ -33,9 +35,22 @@ func main() {
 	
 	http.HandleFunc("/upload", uploadFile)
 	http.HandleFunc("/", ping)
-	log.Println("application starting on port  "+*port)
-	http.ListenAndServe(":"+*port, nil)
 	
+	if *tlsCert != "" && *tlsKey != "" {
+		log.Println("application starting on port  "+*port + " (https)")
+		err := http.ListenAndServeTLS(":"+*port, *tlsCert, *tlsKey, nil)
+		if err  != nil {
+			log.Println(err)
+            return
+		}
+	} else {
+		log.Println("application starting on port  "+*port + " (http)")
+		err := http.ListenAndServe(":"+*port, nil)
+		if err  != nil {
+			log.Println(err)
+        	return
+		}
+	}
 }
 
 func uploadFile(w http.ResponseWriter, r *http.Request) {
@@ -43,13 +58,10 @@ func uploadFile(w http.ResponseWriter, r *http.Request) {
 	r.ParseMultipartForm(10 << 20)
 	// Get handler for metadata file 
 	err := r.ParseForm()
-
 	destDir := r.FormValue("dest")
 	if len(destDir) != 0 {
 		workingDir += formatDirName(destDir)
 	}
-	log.Println("file will be uploaded to destination directory "+workingDir)
-
 	// Get handler for filename and size 
 	file, handler, err := r.FormFile("data")
 	if err != nil {
@@ -59,8 +71,9 @@ func uploadFile(w http.ResponseWriter, r *http.Request) {
 	}
 
 	defer file.Close()
-	
-	log.Printf("Uploaded File: %+v\n", handler.Filename)
+	log.Printf("received File: %+v\n", handler.Filename)
+	log.Println("file will be uploaded to destination directory "+workingDir)
+
 
 	makeDirectoryIfNotExists(workingDir)
 

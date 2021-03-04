@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"io"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"flag"
 	"log"
@@ -14,6 +15,16 @@ import (
 var workingDir string
 const VERSION = "v1.4"
 
+var (
+	endpointsAccessed = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "endpoints_accessed",
+			Help: "Total number of accessed to a given endpoint",
+		},
+		[]string{"accessed_endpoint"},
+	)
+)
+
 func main() {
 	version := flag.Bool("version", false, "returns the fileuploader version")
 	port := flag.String("port", "3000", "overwrite default port")
@@ -22,7 +33,7 @@ func main() {
 	tlsCert := flag.String("tls-crt", "", "certificate path, only needed for ssl service")
 	tlsKey := flag.String("tls-key", "", "key path, only needed for ssl service")
 	logfile := flag.String("log-file", "", "key path, only needed for ssl service")
-
+	prometheus.MustRegister(endpointsAccessed)
 	flag.Parse()
 	if *version {
 		fmt.Println(VERSION)
@@ -72,6 +83,7 @@ func main() {
 }
 
 func uploadFile(w http.ResponseWriter, r *http.Request) {
+	endpointsAccessed.WithLabelValues("/uploadFile").Inc()
 	// Maximum upload of 10 MB files
 	r.ParseMultipartForm(10 << 20)
 	// Get handler for metadata file 
@@ -116,12 +128,14 @@ func uploadFile(w http.ResponseWriter, r *http.Request) {
 
 
 func ping(w http.ResponseWriter, r *http.Request) {
+	endpointsAccessed.WithLabelValues("/").Inc()
 	fmt.Fprintln(w, "/metrics")
 	fmt.Fprintln(w, "/upload")
 	fmt.Fprintln(w, "/health")
 }
 
 func health(w http.ResponseWriter, r *http.Request) {
+	endpointsAccessed.WithLabelValues("/health").Inc()
 	fmt.Fprintln(w, "application is healthy")
 }
 

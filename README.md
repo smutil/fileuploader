@@ -63,14 +63,26 @@ This service is used to upload file in server. This service can be used for uplo
  
  ### example
 
- 1. uploading file in default destination directory
- ```
- curl -F "data=@test.yml"  http://localhost:3000/upload
- 
- ```
+  1. uploading file in default destination directory
+  ```
+  curl -F "data=@test.yml"  http://localhost:3000/upload
+  
+  ```
 
- 2. uploading file in user defined destination directory. This path will be appended in default destination.
- ```
- curl -F "data=@test.yml" -F "dest=/tmp/downloads"  http://localhost:3000/upload
- 
- ```
+  2. uploading file in user defined destination directory. This path will be appended in default destination.
+  ```
+  curl -F "data=@test.yml" -F "dest=/tmp/downloads"  http://localhost:3000/upload
+  
+  ```
+
+  3. returns application health check
+  ```
+  curl http://localhost:3000/health
+  
+  ```
+
+  4. Metrics for Prometheus
+  ```
+  curl http://localhost:3000/metrics
+  
+  ```

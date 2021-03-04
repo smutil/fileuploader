@@ -52,6 +52,7 @@ func main() {
 	
 	http.HandleFunc("/upload", uploadFile)
 	http.HandleFunc("/", ping)
+	http.HandleFunc("/health", health)
 	
 	if *tlsCert != "" && *tlsKey != "" {
 		log.Println("application starting on port  "+*port + " (https)")
@@ -117,7 +118,11 @@ func uploadFile(w http.ResponseWriter, r *http.Request) {
 func ping(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, "/metrics")
 	fmt.Fprintln(w, "/upload")
-	fmt.Fprintln(w, "/view")
+	fmt.Fprintln(w, "/health")
+}
+
+func health(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintln(w, "application is healthy")
 }
 
 func formatDirName(s string) string {

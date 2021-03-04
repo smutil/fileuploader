@@ -45,6 +45,8 @@ This service is used to upload file in server. This service can be used for uplo
 
 ``` 
   ./fileuploader -h
+    --version
+          returns application version
     --dest string
           (required) destination directory, should not be root /
     --port string

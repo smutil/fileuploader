@@ -12,8 +12,10 @@ import (
 )
 
 var workingDir string
+const VERSION = "v1.4"
 
 func main() {
+	version := flag.Bool("version", false, "returns the fileuploader version")
 	port := flag.String("port", "3000", "overwrite default port")
 	dest := flag.String("dest", "", "(required) destination directory, should not be root /")
 	viewmode := flag.Bool("viewmode", false, "/view will be enabled to view all the files in destination directory")
@@ -22,6 +24,10 @@ func main() {
 	logfile := flag.String("log-file", "", "key path, only needed for ssl service")
 
 	flag.Parse()
+	if *version {
+		fmt.Println(VERSION)
+		return
+	}
 	if *dest == "" || *dest == "/" {
 		log.Fatal("-dest is required for default destination/working directory and should not be root /, please refer -h")
 	} 

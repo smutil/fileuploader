@@ -13,7 +13,7 @@ import (
 )
 
 var workingDir string
-const VERSION = "v1.4"
+const VERSION = "v1.5"
 
 var (
 	endpointsAccessed = prometheus.NewCounterVec(
@@ -62,7 +62,7 @@ func main() {
 	}
 	
 	http.HandleFunc("/upload", uploadFile)
-	http.HandleFunc("/", ping)
+	http.HandleFunc("/", health)
 	http.HandleFunc("/health", health)
 	
 	if *tlsCert != "" && *tlsKey != "" {
@@ -124,14 +124,6 @@ func uploadFile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	fmt.Fprintf(w, "Successfully Uploaded File " + workingDir +"/"+handler.Filename +"\n")
-}
-
-
-func ping(w http.ResponseWriter, r *http.Request) {
-	endpointsAccessed.WithLabelValues("/").Inc()
-	fmt.Fprintln(w, "/metrics")
-	fmt.Fprintln(w, "/upload")
-	fmt.Fprintln(w, "/health")
 }
 
 func health(w http.ResponseWriter, r *http.Request) {

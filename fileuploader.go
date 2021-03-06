@@ -13,7 +13,7 @@ import (
 )
 
 var workingDir string
-const VERSION = "v1.5"
+var Version = "v1.5"
 
 var (
 	endpointsAccessed = prometheus.NewCounterVec(
@@ -36,7 +36,7 @@ func main() {
 	prometheus.MustRegister(endpointsAccessed)
 	flag.Parse()
 	if *version {
-		fmt.Println(VERSION)
+		fmt.Println(Version)
 		return
 	}
 	if *dest == "" || *dest == "/" {

@@ -12,7 +12,7 @@ import (
 	"strings"
 )
 
-var workingDir string
+var workingDir, authToken string
 var Version = "v1.5"
 
 var (
@@ -33,6 +33,7 @@ func main() {
 	tlsCert := flag.String("tls-crt", "", "certificate path, only needed for ssl service")
 	tlsKey := flag.String("tls-key", "", "key path, only needed for ssl service")
 	logfile := flag.String("log-file", "", "key path, only needed for ssl service")
+	authtoken := flag.String("authToken", "", "Bearer Toekn for basic authentication")
 	prometheus.MustRegister(endpointsAccessed)
 	flag.Parse()
 	if *version {
@@ -42,6 +43,9 @@ func main() {
 	if *dest == "" || *dest == "/" {
 		log.Fatal("-dest is required for default destination/working directory and should not be root /, please refer -h")
 	} 
+	if *authtoken != "" {
+		authToken = *authtoken
+	}
 
 	if *logfile != "" {
 		file, err := os.OpenFile(*logfile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
@@ -51,7 +55,6 @@ func main() {
 		log.SetOutput(file)
 	}
 	
-
 	workingDir = formatDirName(*dest)
 	log.Println("working directory is  "+workingDir)
 	fs := http.FileServer(http.Dir(workingDir))
@@ -82,8 +85,42 @@ func main() {
 	}
 }
 
+func authenticateRequest(w http.ResponseWriter, req *http.Request) bool {
+	var authenticated bool = false
+	if authToken != "" {
+		authorizationHeader := req.Header.Get("authorization")
+		if authorizationHeader != "" {
+			bearerToken := strings.Split(authorizationHeader, " ")
+			if len(bearerToken) == 2 {
+				if bearerToken[1] == authToken {
+					authenticated = true
+				} else {
+					http.Error(w, "Invalid authorization token", http.StatusUnauthorized)
+					return authenticated
+				}
+			} else {
+				http.Error(w, "Invalid authorization token", http.StatusUnauthorized)
+				return authenticated
+			}
+		} else {
+			http.Error(w, "An authorization header not provided", http.StatusUnauthorized)
+			return authenticated
+		}
+	} else {
+		authenticated = true		
+	}
+	return authenticated
+}
+
+func view(w http.ResponseWriter, r *http.Request) {
+}
+
 func uploadFile(w http.ResponseWriter, r *http.Request) {
 	endpointsAccessed.WithLabelValues("/uploadFile").Inc()
+	if !authenticateRequest(w,r) {
+		return
+	}
+	
 	// Maximum upload of 10 MB files
 	r.ParseMultipartForm(10 << 20)
 	// Get handler for metadata file 

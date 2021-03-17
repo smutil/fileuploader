@@ -117,6 +117,7 @@ func view(w http.ResponseWriter, r *http.Request) {
 
 func uploadFile(w http.ResponseWriter, r *http.Request) {
 	endpointsAccessed.WithLabelValues("/uploadFile").Inc()
+	var finalDestDir string
 	if !authenticateRequest(w,r) {
 		return
 	}
@@ -127,8 +128,10 @@ func uploadFile(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	destDir := r.FormValue("dest")
 	if len(destDir) != 0 {
-		workingDir += formatDirName(destDir)
-	}
+		finalDestDir += workingDir + formatDirName(destDir)
+	} else {
+		finalDestDir = workingDir
+	} 
 	// Get handler for filename and size 
 	file, handler, err := r.FormFile("data")
 	if err != nil {
@@ -139,13 +142,13 @@ func uploadFile(w http.ResponseWriter, r *http.Request) {
 
 	defer file.Close()
 	log.Printf("received File: %+v\n", handler.Filename)
-	log.Println("file will be uploaded to destination directory "+workingDir)
+	log.Println("file will be uploaded to destination directory "+finalDestDir)
 
 
-	makeDirectoryIfNotExists(workingDir)
+	makeDirectoryIfNotExists(finalDestDir)
 
 	// Create file
-	dst, err := os.Create(workingDir+"/"+handler.Filename)
+	dst, err := os.Create(finalDestDir+"/"+handler.Filename)
 	defer dst.Close()
 
 	if err != nil {
@@ -160,7 +163,7 @@ func uploadFile(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	fmt.Fprintf(w, "Successfully Uploaded File " + workingDir +"/"+handler.Filename +"\n")
+	fmt.Fprintf(w, "Successfully Uploaded File " + finalDestDir +"/"+handler.Filename +"\n")
 }
 
 func health(w http.ResponseWriter, r *http.Request) {

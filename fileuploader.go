@@ -163,7 +163,8 @@ func uploadFile(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	fmt.Fprintf(w, "Successfully Uploaded File " + finalDestDir +"/"+handler.Filename +"\n")
+	log.Println("Successfully Uploaded File : " + finalDestDir +"/"+handler.Filename +"\n")
+	fmt.Fprintf(w, "Successfully Uploaded File : " + handler.Filename +"\n")
 }
 
 func health(w http.ResponseWriter, r *http.Request) {
